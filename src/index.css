@@ -1,0 +1,246 @@
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   CSS VARIABLES (THEME)
+   ========================= */
+@layer base {
+  :root {
+    --background: 40 50% 96%;
+    --foreground: 25 30% 15%;
+
+    --card: 40 40% 98%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 40 40% 98%;
+    --popover-foreground: 25 30% 15%;
+
+    --primary: 28 90% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 60% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 40 30% 90%;
+    --muted-foreground: 25 20% 40%;
+
+    --accent: 350 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 30% 85%;
+    --input: 40 30% 85%;
+    --ring: 28 90% 55%;
+
+    --radius: 1rem;
+
+    /* Game-specific colors */
+    --team-a: 200 80% 50%;
+    --team-a-light: 200 80% 95%;
+    --team-b: 280 70% 55%;
+    --team-b-light: 280 70% 95%;
+    --valid: 145 70% 45%;
+    --invalid: 0 80% 55%;
+    --gold: 45 100% 50%;
+  }
+
+  .dark {
+    --background: 25 30% 10%;
+    --foreground: 40 30% 95%;
+
+    --card: 25 25% 15%;
+    --card-foreground: 40 30% 95%;
+
+    --popover: 25 25% 15%;
+    --popover-foreground: 40 30% 95%;
+
+    --primary: 28 90% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 60% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 25 20% 25%;
+    --muted-foreground: 40 20% 65%;
+
+    --accent: 350 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 25 20% 25%;
+    --input: 25 20% 25%;
+    --ring: 28 90% 55%;
+  }
+}
+
+/* =========================
+   BASE STYLES (SAFE)
+   ========================= */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Noto Sans Gujarati", sans-serif;
+  }
+}
+
+/* =========================
+   UTILITIES
+   ========================= */
+@layer utilities {
+  .font-gujarati {
+    font-family: "Noto Sans Gujarati", sans-serif;
+  }
+
+  .text-gradient-primary {
+  background-image: linear-gradient(
+    to right,
+    hsl(var(--primary)),
+    hsl(var(--accent)),
+    hsl(var(--secondary))
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+
+  .team-a-gradient {
+    background-image: linear-gradient(
+      to bottom right,
+      hsl(var(--team-a)),
+      hsl(200 80% 40%)
+    );
+  }
+
+  .team-b-gradient {
+    background-image: linear-gradient(
+      to bottom right,
+      hsl(var(--team-b)),
+      hsl(280 70% 45%)
+    );
+  }
+
+  .animate-bounce-soft {
+    animation: bounce-soft 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+
+  .animate-pop {
+    animation: pop 0.3s ease-out;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+/* =========================
+   KEYFRAMES
+   ========================= */
+@keyframes bounce-soft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-5px);
+  }
+  40%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(-4px) rotate(-2deg);
+  }
+}
+
+/* =========================
+   SCROLLBAR
+   ========================= */
+::-webkit-scrollbar-track {
+  background-color: hsl(var(--muted));
+  border-radius: 9999px;
+}
+
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary) / 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--primary) / 0.7);
+}
