@@ -48,7 +48,7 @@ const GameControls = ({
         className="text-lg font-bold px-8 h-12 border-2 hover:bg-slate-100 transition-all active:scale-95"
       >
         <Printer className="w-5 h-5 mr-2" />
-        પ્રિન્ટ (Print)
+        પ્રિન્ટ કરો (Print)
       </Button>
 
       <Button

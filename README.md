@@ -1,73 +1,75 @@
-# React + TypeScript + Vite
+# Shabd Spardha - Gujarati Word Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Shabd Spardha is an engaging and educational game designed to enhance knowledge of the Gujarati language. This game was created for my father's school to make the learning process easier and more enjoyable.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎤 **Voice Input** - Just speak words, no need to type!
+- 📱 **Single Device Mode** - Play with both teams on one device
+- 🌐 **Multi-Device Mode** - Play from different devices simultaneously
+- 🔤 **Complete Gujarati Varakshari** - All Gujarati letters and their combinations
+- ⚡ **Real-Time Updates** - Sync across all devices in multiplayer mode
+- 📊 **Print Results** - Print and share game results
 
-## React Compiler
+## Recognition
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This project has been featured in several newspapers including:
+- 📰 Sandesh
+- 📰 Loksatta
+- Other prominent newspapers
 
-## Expanding the ESLint configuration
+## Honorable Recognition
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+This project has also received recognition from the Chief Minister of Gujarat, Honorable Shri Bhupendrabhai Patel.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Technical Details
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Frontend**: React 19, TypeScript, Vite
+- **UI Framework**: Radix UI, Tailwind CSS
+- **Real-time Communication**: Socket.IO
+- **Voice Recognition**: Web Speech API
+- **Database**: Supabase
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Start the multiplayer server (in a separate terminal):
+   ```bash
+   npm run server
+   ```
+
+## Technologies Used
+
+- React 19 and TypeScript
+- Vite build tool
+- Radix UI components
+- Tailwind CSS
+- Socket.IO for real-time multiplayer
+- Web Speech API for voice recognition
+- Supabase for backend services
+
+## Purpose
+
+This game was created specifically for my father's school, Jadiyana Primary School, to make the educational process easier and more engaging. It's perfect for enhancing knowledge of the Gujarati language.
+
+## Contributing
+
+Thank you for considering contributing!
+
+## License
+
+MIT

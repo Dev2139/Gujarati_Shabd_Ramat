@@ -25,6 +25,16 @@ export interface GameState {
   winner: 'A' | 'B' | 'tie' | null;
   isListening: boolean;
   speakingTeam: 'A' | 'B' | null;
+  gameCode?: string;
+  isMultiplayer?: boolean;
+  players?: {
+    [key: string]: {
+      id: string;
+      name: string;
+      team: 'A' | 'B';
+      isReady: boolean;
+    }
+  };
 }
 
 export type GameMode = 'single' | 'multiplayer';

@@ -1,18 +1,56 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Users, Smartphone, Sparkles } from 'lucide-react';
+import { Gamepad2, Users, Smartphone, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { GameMode, GameSetup } from '@/types/game';
-import { GUJARATI_CONSONANTS } from '@/utils/wordValidation';
+import { GUJARATI_CONSONANTS, GUJARATI_VOWELS, GUJARATI_MATRAS } from '@/utils/wordValidation';
 import { cn } from '@/lib/utils';
+import MultiplayerSetup from '@/components/MultiplayerSetup';
 
 interface StartScreenProps {
-  onStart: (mode: GameMode, setup: GameSetup) => void;
+  onStart: (mode: GameMode, setup: GameSetup, gameCode?: string) => void;
 }
 
 const StartScreen = ({ onStart }: StartScreenProps) => {
-  const [letterA, setLetterA] = useState('ડ');
-  const [letterB, setLetterB] = useState('બ');
+  const [letterA, setLetterA] = useState('ક');
+  const [letterB, setLetterB] = useState('ખ');
   const [showSetup, setShowSetup] = useState(false);
+  const [showMultiplayer, setShowMultiplayer] = useState(false);
+  
+  // State for tabs and letter selection
+  const [activeTab, setActiveTab] = useState<'consonants' | 'vowels' | 'combinations'>('consonants');
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Generate consonant-matra combinations
+  const consonantMatraCombinations = [];
+  for (const consonant of GUJARATI_CONSONANTS) {
+    for (const matra of GUJARATI_MATRAS) {
+      if (matra === 'ા') consonantMatraCombinations.push(consonant + 'ા');
+      if (matra === 'િ') consonantMatraCombinations.push(consonant + 'િ');
+      if (matra === 'ી') consonantMatraCombinations.push(consonant + 'ી');
+      if (matra === 'ુ') consonantMatraCombinations.push(consonant + 'ુ');
+      if (matra === 'ૂ') consonantMatraCombinations.push(consonant + 'ૂ');
+      if (matra === 'ે') consonantMatraCombinations.push(consonant + 'ે');
+      if (matra === 'ૈ') consonantMatraCombinations.push(consonant + 'ૈ');
+      if (matra === 'ો') consonantMatraCombinations.push(consonant + 'ો');
+      if (matra === 'ૌ') consonantMatraCombinations.push(consonant + 'ૌ');
+    }
+  }
+  
+  // Function to filter letters based on search term
+  const filterLetters = (letters: string[]) => {
+    if (!searchTerm) return letters;
+    return letters.filter(letter => letter.includes(searchTerm));
+  };
+  
+  // Function to get letters based on active tab
+  const getLettersForTab = () => {
+    let letters = [];
+    if (activeTab === 'consonants') letters = GUJARATI_CONSONANTS;
+    else if (activeTab === 'vowels') letters = GUJARATI_VOWELS;
+    else letters = consonantMatraCombinations;
+    
+    return filterLetters(letters);
+  };
 
   const handleStartGame = () => {
     if (letterA === letterB) {
@@ -38,7 +76,7 @@ const StartScreen = ({ onStart }: StartScreenProps) => {
         </p>
       </div>
 
-      {!showSetup ? (
+      {!showSetup && !showMultiplayer ? (
         <div className="grid gap-4 md:gap-6 w-full max-w-md animate-slide-up" style={{ animationDelay: '200ms' }}>
           <Button
             onClick={() => setShowSetup(true)}
@@ -58,20 +96,73 @@ const StartScreen = ({ onStart }: StartScreenProps) => {
           </Button>
 
           <Button
-            disabled
+            onClick={() => setShowMultiplayer(true)}
             size="lg"
-            className="h-auto py-6 px-8 bg-muted text-muted-foreground rounded-2xl opacity-60 cursor-not-allowed"
+            className="h-auto py-6 px-8 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-primary-foreground rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             <div className="flex items-center gap-4 w-full">
-              <div className="bg-card/50 p-3 rounded-xl">
+              <div className="bg-card/20 p-3 rounded-xl">
                 <Users className="w-8 h-8" />
               </div>
               <div className="text-left flex-1">
-                <p className="text-xl font-bold">Multiple Devices</p>
-                <p className="text-sm">ટૂંક સમયમાં આવી રહ્યું છે...</p>
+                <p className="text-xl font-bold">બહુ-ઉપકરણ રમત</p>
+                <p className="text-sm opacity-80">અલગ-અલગ ઉપકરણ પરથી રમો</p>
               </div>
+              <Users className="w-6 h-6" />
             </div>
           </Button>
+        </div>
+      ) : showMultiplayer ? (
+        <div className="w-full max-w-2xl animate-slide-up bg-card rounded-3xl p-6 md:p-8 shadow-xl">
+          <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
+            બહુ-ઉપકરણ રમત
+          </h3>
+          
+          <div className="flex gap-4 mb-6">
+            <Button
+              variant={showMultiplayer && !showSetup ? "default" : "outline"}
+              onClick={() => {
+                setShowSetup(false);
+                setShowMultiplayer(true);
+              }}
+              className="flex-1 h-12 text-lg"
+            >
+              રમત બનાવો
+            </Button>
+            <Button
+              variant={showSetup ? "default" : "outline"}
+              onClick={() => {
+                setShowSetup(true);
+                setShowMultiplayer(false);
+              }}
+              className="flex-1 h-12 text-lg"
+            >
+              રમતમાં જોડાઓ
+            </Button>
+          </div>
+          
+          <MultiplayerSetup
+            onStart={(mode, setup, gameCode) => {
+              // Pass the gameCode to the parent component
+              onStart(mode, setup);
+              // In a real implementation, we would handle the gameCode here
+              console.log('Starting multiplayer game with code:', gameCode);
+            }}
+            isHost={!showSetup}
+          />
+          
+          <div className="mt-6 text-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowMultiplayer(false);
+                setShowSetup(false);
+              }}
+              className="h-12 text-lg"
+            >
+              પાછા જાઓ
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="w-full max-w-2xl animate-slide-up bg-card rounded-3xl p-6 md:p-8 shadow-xl">
@@ -86,8 +177,42 @@ const StartScreen = ({ onStart }: StartScreenProps) => {
               <span className="text-lg font-bold text-teamA">Team A નો અક્ષર:</span>
               <span className="text-3xl font-bold text-teamA">{letterA}</span>
             </div>
+            
+            {/* Tab Navigation */}
+            <div className="flex mb-3">
+              <button
+                className={`flex-1 py-2 px-4 rounded-l-lg text-center ${activeTab === 'consonants' ? 'bg-teamA text-white' : 'bg-muted'}`}
+                onClick={() => setActiveTab('consonants')}
+              >
+                વ્યંજન (Consonants)
+              </button>
+              <button
+                className={`flex-1 py-2 px-4 ${activeTab === 'vowels' ? 'bg-teamA text-white' : 'bg-muted'}`}
+                onClick={() => setActiveTab('vowels')}
+              >
+                સ્વર (Vowels)
+              </button>
+              <button
+                className={`flex-1 py-2 px-4 rounded-r-lg text-center ${activeTab === 'combinations' ? 'bg-teamA text-white' : 'bg-muted'}`}
+                onClick={() => setActiveTab('combinations')}
+              >
+                માત્રા સાથે (With Matras)
+              </button>
+            </div>
+            
+            {/* Search Input */}
+            {activeTab === 'combinations' && (
+              <input
+                type="text"
+                placeholder="શોધો... (કા, કિ, કી, વગેરે)"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full p-2 mb-3 rounded-lg border border-input bg-background"
+              />
+            )}
+            
             <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-teamA-light rounded-xl">
-              {GUJARATI_CONSONANTS.map((letter) => (
+              {getLettersForTab().map((letter) => (
                 <button
                   key={`A-${letter}`}
                   onClick={() => setLetterA(letter)}
@@ -114,8 +239,42 @@ const StartScreen = ({ onStart }: StartScreenProps) => {
               <span className="text-lg font-bold text-teamB">Team B નો અક્ષર:</span>
               <span className="text-3xl font-bold text-teamB">{letterB}</span>
             </div>
+            
+            {/* Tab Navigation */}
+            <div className="flex mb-3">
+              <button
+                className={`flex-1 py-2 px-4 rounded-l-lg text-center ${activeTab === 'consonants' ? 'bg-teamB text-white' : 'bg-muted'}`}
+                onClick={() => setActiveTab('consonants')}
+              >
+                વ્યંજન (Consonants)
+              </button>
+              <button
+                className={`flex-1 py-2 px-4 ${activeTab === 'vowels' ? 'bg-teamB text-white' : 'bg-muted'}`}
+                onClick={() => setActiveTab('vowels')}
+              >
+                સ્વર (Vowels)
+              </button>
+              <button
+                className={`flex-1 py-2 px-4 rounded-r-lg text-center ${activeTab === 'combinations' ? 'bg-teamB text-white' : 'bg-muted'}`}
+                onClick={() => setActiveTab('combinations')}
+              >
+                માત્રા સાથે (With Matras)
+              </button>
+            </div>
+            
+            {/* Search Input */}
+            {activeTab === 'combinations' && (
+              <input
+                type="text"
+                placeholder="શોધો... (કા, કિ, કી, વગેરે)"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full p-2 mb-3 rounded-lg border border-input bg-background"
+              />
+            )}
+            
             <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-teamB-light rounded-xl">
-              {GUJARATI_CONSONANTS.map((letter) => (
+              {getLettersForTab().map((letter) => (
                 <button
                   key={`B-${letter}`}
                   onClick={() => setLetterB(letter)}

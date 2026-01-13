@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
-import { GameState, Word, GameMode, GameSetup } from '@/types/game';
+import { useState, useEffect, useCallback } from 'react';
+import { GameState, GameMode, GameSetup, Word } from '@/types/game';
 import { validateWord } from '@/utils/wordValidation';
+import socketService from '@/services/socketService';
 
 const createInitialGameState = (setup?: GameSetup, gameCode?: string): GameState => ({
   isPlaying: false,
@@ -29,13 +30,86 @@ const createInitialGameState = (setup?: GameSetup, gameCode?: string): GameState
   players: {},
 });
 
-export const useGameState = () => {
+export const useMultiplayerGameState = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState());
   const [error, setError] = useState<string>('');
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [lastRecognizedWord, setLastRecognizedWord] = useState<string>('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [currentPlayerTeam, setCurrentPlayerTeam] = useState<'A' | 'B' | null>(null);
 
-  const startGame = useCallback((mode: GameMode, setup: GameSetup, gameCode?: string) => {
+  // Initialize socket connection
+  useEffect(() => {
+    const socket = socketService.connect();
+    
+    socket.on('connect', () => {
+      setIsConnected(true);
+    });
+    
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    // Listen for game events
+    socketService.onGameStarted((gameState) => {
+      setGameState(gameState);
+      setGameMode('multiplayer');
+    });
+
+    socketService.onWordSubmitted((data) => {
+      setGameState(prev => {
+        const updatedTeam = {
+          ...prev.teams[data.team],
+          words: [...prev.teams[data.team].words, {
+            id: `${Date.now()}-${Math.random()}`,
+            text: data.word,
+            team: data.team,
+            isValid: data.isValid,
+            isDuplicate: data.isDuplicate,
+            timestamp: Date.now(),
+          }],
+          score: data.isValid ? prev.teams[data.team].score + 1 : prev.teams[data.team].score,
+        };
+
+        return {
+          ...prev,
+          teams: {
+            ...prev.teams,
+            [data.team]: updatedTeam,
+          },
+        };
+      });
+    });
+
+    socketService.onGameEnded((winner) => {
+      setGameState(prev => ({
+        ...prev,
+        winner,
+        isPlaying: false,
+      }));
+    });
+
+    socketService.onTurnChanged((currentTeam) => {
+      setGameState(prev => ({
+        ...prev,
+        currentTeam,
+      }));
+    });
+
+    socketService.onGameError((errorMsg) => {
+      setError(errorMsg);
+    });
+
+    return () => {
+      socketService.offGameStarted();
+      socketService.offWordSubmitted();
+      socketService.offGameEnded();
+      socketService.offTurnChanged();
+      socketService.offGameError();
+    };
+  }, []);
+
+  const startMultiplayerGame = useCallback((mode: GameMode, setup: GameSetup, gameCode?: string) => {
     setGameMode(mode);
     setGameState({
       ...createInitialGameState(setup, gameCode),
@@ -45,59 +119,71 @@ export const useGameState = () => {
     setLastRecognizedWord('');
   }, []);
 
-  const setTeamSpeaking = useCallback((team: 'A' | 'B' | null) => {
-    setGameState((prev) => ({
-      ...prev,
-      speakingTeam: team,
-      isListening: team !== null,
-    }));
-  }, []);
-
   const submitWord = useCallback((word: string, team: 'A' | 'B') => {
     setError('');
     setLastRecognizedWord(word);
-    
-    const teamData = gameState.teams[team];
-    const allWords = [
-      ...gameState.teams.A.words,
-      ...gameState.teams.B.words,
-    ].map((w) => w.text);
 
-    const validation = validateWord(word, teamData.letter, allWords);
+    // For multiplayer, we need to send the word to the server
+    if (gameState.isMultiplayer && gameState.gameCode) {
+      // Validate the word locally first
+      const teamData = gameState.teams[team];
+      const allWords = [
+        ...gameState.teams.A.words,
+        ...gameState.teams.B.words,
+      ].map((w) => w.text);
 
-    const newWord: Word = {
-      id: `${Date.now()}-${Math.random()}`,
-      text: word,
-      team: team,
-      isValid: validation.isValid,
-      isDuplicate: validation.isDuplicate,
-      timestamp: Date.now(),
-    };
+      const validation = validateWord(word, teamData.letter, allWords);
 
-    setGameState((prev) => {
-      const updatedTeam = {
-        ...prev.teams[team],
-        words: [...prev.teams[team].words, newWord],
-        score: validation.isValid ? prev.teams[team].score + 1 : prev.teams[team].score,
+      // Send to server
+      socketService.submitWord(gameState.gameCode, word, team, (success) => {
+        if (!success) {
+          setError('શબ્દ સબમિટ કરવામાં ત્રુટિ આવી');
+        }
+      });
+
+      return validation;
+    } else {
+      // For single player, handle locally
+      const teamData = gameState.teams[team];
+      const allWords = [
+        ...gameState.teams.A.words,
+        ...gameState.teams.B.words,
+      ].map((w) => w.text);
+
+      const validation = validateWord(word, teamData.letter, allWords);
+
+      const newWord: Word = {
+        id: `${Date.now()}-${Math.random()}`,
+        text: word,
+        team: team,
+        isValid: validation.isValid,
+        isDuplicate: validation.isDuplicate,
+        timestamp: Date.now(),
       };
 
-      return {
-        ...prev,
-        teams: {
-          ...prev.teams,
-          [team]: updatedTeam,
-        },
-        speakingTeam: null,
-        isListening: false,
-      };
-    });
+      setGameState((prev) => {
+        const updatedTeam = {
+          ...prev.teams[team],
+          words: [...prev.teams[team].words, newWord],
+          score: validation.isValid ? prev.teams[team].score + 1 : prev.teams[team].score,
+        };
 
-    if (!validation.isValid) {
-      setError(validation.error || 'અમાન્ય શબ્દ');
+        return {
+          ...prev,
+          teams: {
+            ...prev.teams,
+            [team]: updatedTeam,
+          },
+        };
+      });
+
+      if (!validation.isValid) {
+        setError(validation.error || 'અમાન્ય શબ્દ');
+      }
+
+      return validation;
     }
-
-    return validation;
-  }, [gameState.teams]);
+  }, [gameState]);
 
   const endGame = useCallback(() => {
     setGameState((prev) => {
@@ -124,11 +210,16 @@ export const useGameState = () => {
   }, []);
 
   const restartGame = useCallback(() => {
-    setGameState(createInitialGameState());
+    if (gameState.gameCode) {
+      // In multiplayer, we might want to reset the game on the server
+      setGameState(createInitialGameState({ letterA: gameState.teams.A.letter, letterB: gameState.teams.B.letter }, gameState.gameCode));
+    } else {
+      setGameState(createInitialGameState());
+    }
     setGameMode(null);
     setError('');
     setLastRecognizedWord('');
-  }, []);
+  }, [gameState]);
 
   const printWords = useCallback(() => {
     const printContent = `
@@ -199,17 +290,37 @@ export const useGameState = () => {
     }
   }, [gameState]);
 
+  const createGame = useCallback((setup: GameSetup, callback: (gameCode: string, error?: string) => void) => {
+    socketService.createGame(setup, callback);
+  }, []);
+
+  const joinGame = useCallback((gameCode: string, playerName: string, callback: (success: boolean, error?: string) => void) => {
+    socketService.joinGame(gameCode, playerName, callback);
+  }, []);
+
+  const setTeamSpeaking = useCallback((team: 'A' | 'B' | null) => {
+    setGameState((prev) => ({
+      ...prev,
+      speakingTeam: team,
+      isListening: team !== null,
+    }));
+  }, []);
+
   return {
     gameState,
     gameMode,
     error,
     lastRecognizedWord,
-    startGame,
+    isConnected,
+    currentPlayerTeam,
+    startMultiplayerGame,
     submitWord,
     setTeamSpeaking,
     endGame,
     restartGame,
     printWords,
     setError,
+    createGame,
+    joinGame,
   };
 };
